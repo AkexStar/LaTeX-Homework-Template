@@ -1,0 +1,103 @@
+\documentclass{homework}
+% \documentclass[UTF8]{ctexart}
+\usepackage[UTF8]{ctex}
+\usepackage{amsmath, amsthm, amssymb, bm, color, framed, graphicx, mathrsfs}
+
+\author{Your Name 你的名字}
+\class{CLASS NAME 课程名/课程号}
+\date{\today}
+\title{\Large \textbf{Homework-1}\\深度学习部分基础理论公式推导与分析}
+% \address{YOUR ADDRESS 你的地址}
+\definecolor{shadecolor}{RGB}{241, 241, 255}
+\graphicspath{{./media/}}
+\begin{document} \maketitle
+% Draw a line
+\rule[0ex]{\textwidth}{1.5pt}
+% Draw background 
+\begin{shaded}
+    \question \textbf{MLP for Classification: }
+    
+    In a multi-class classification problem, e.g. a problem with $M$ classes, we use a model $f_{\theta}$ to produce the output $\hat{y}$. $\hat{y}$ is a vector of dimension $M$ with sum 1, whose components indicate the probability of $x$ belong to each class.
+    In this section, you will use a simple model -- the 3-layer MLP -- to tackle this problem. Assume that we have $K$ labeled data $\left(x_{k}, y_{k}\right)$ with $k=1,2, \ldots, K$ where $x_{k} \in \mathbb{R}^{N}$ and $y_{k} \in \mathbb{R}^{M}$ is a $M$-dimensional one-hot vector. 
+    \begin{enumerate}
+        \item[a)] Define the cross entropy loss for a multi-class classification problem.
+        \item[b)] A 3-layer MLP consists of an input layer, a hidden layer and an output layer with two learned parameter matrices $W^{1}, W^{2}$ between successive layers. Please note that there is generally a Softmax layer after the output layer to scale the output, which we omitted in this sub-question for simplicity. When given an input $x$, this model performs the following forward computations sequentially:
+        $$\begin{aligned}
+        & a_{1}=W^{1} x, \\
+        & h=\sigma\left(a_{1}\right), \\
+        & a_{2}=W^{2} h, \\
+        & \hat{y}=\sigma\left(a_{2}\right) .
+        \end{aligned}$$
+        where $W^{1} \in \mathbb{R}^{D \times N}, W^{2} \in \mathbb{R}^{M \times D}$ are parameter matrices and $\sigma(z)=\frac{1}{1+e^{-z}}$ is the element-wise Sigmoid function. Use the loss function you defined in sub-question a), apply an SGD update to the parameters $W^{1}$ and $W^{2}$ with learning rate $\eta$ via back-propagation. You must identify the closed-form gradient of each parameter, which is $\frac{\partial \mathcal{L}}{\partial W^{2}(m, d)}$ and $\frac{\partial \mathcal{L}}{\partial W^{1}(d, n)}$ in your derivation.
+    \end{enumerate}
+    \textbf{HINT:}
+        1. For simplicity, you can assume that the SGD program uses only one training data per batch. 
+        2. Use formula $\sigma^{\prime}(z)=\sigma(z)(1-\sigma(z))$ for a scalar $z$. 
+\end{shaded}
+a) 由题意，对于多类别分类问题，某一样本的真实标签为$y \in \mathbb{R}^M$，预测标签为$\hat{y} \in \mathbb{R}^M$，则交叉熵损失函数定义为：
+$$\mathcal{L}(y, \hat{y})=-\sum_{i=1}^{M} y_i \log \hat{y}_i$$
+
+b) 对于一个输入$x \in \mathbb{R}^N$，标签$y \in \mathbb{R}^M$的训练数据，模型的前向计算如下：
+$$\begin{aligned}
+    & a_{1}=W^{1} x, \\
+    & h=\sigma\left(a_{1}\right), \\
+    & a_{2}=W^{2} h, \\
+    & \hat{y}=\sigma\left(a_{2}\right) .
+\end{aligned}$$ 
+
+其中$W^{1} \in \mathbb{R}^{D \times N}, W^{2} \in \mathbb{R}^{M \times D}$是待训练的权重矩阵，$\sigma(z)=\frac{1}{1+e^{-z}}$是Sigmoid函数。
+
+使用交叉熵损失函数，可以将模型在$K$个训练数据上的损失表示为：
+$$\mathcal{L}=\frac{1}{K} \sum_{k=1}^{K} \mathcal{L}\left(y_{k}, \hat{y}_{k}\right)=-\frac{1}{K} \sum_{k=1}^{K} \sum_{i=1}^{M} y_{k,i} \log \hat{y}_{k,i}$$
+
+对于模型参数$W^{1}$和$W^{2}$，我们需要计算它们对损失函数的梯度，从而进行梯度下降更新。根据链式法则，可以将梯度计算分为两个部分，即输出层到隐藏层的梯度和隐藏层到输入层的梯度。
+
+未待完续……
+
+\newpage
+\begin{shaded}
+    \question \textbf{Dropout and Regularization}
+    
+    Dropout is a well-known way to prevent neural networks from overfitting. In this section, you will show this regularization explicitly for linear regression. Recall that linear regression optimizes $w \in \mathbb{R}^{d}$ to minimize the following MSE objective:
+    $$
+    \mathcal{L}(w)=\|y-X w\|^{2}
+    $$
+    where $y \in \mathbb{R}^{n}$ is the response to design matrix $X \in \mathbb{R}^{n \times d}$. One way of using dropout during training on the $d$-dimensional input features $x_{i}$ involves keeping each feature at random with probability $p$ (and zero out it if not kept).
+    \begin{enumerate}
+        \item[a)] Show that when we apply such dropout, the learning objective becomes
+        $$
+        \mathcal{L}(w)=\mathbb{E}_{M \sim \operatorname{Bernoulli}(p)}\|y-(M \odot X) w\|^{2}
+        $$
+        where $\odot$ denotes the element-wise product and $M \in\{0,1\}^{n \times d}$ is a random mask matrix whose element $m_{i, j}$ have $i . i . d$. Bernoulli distribution with success probability $p$.
+        \item[b)] Show that we can manipulate the dropout learning objective to a explicit regularized objective:
+        $$
+        \mathcal{L}(w)=\|y-p X w\|^{2}+p(1-p)\|\Gamma w\|^{2}
+        $$
+        and define a suitable matrix $\Gamma$.
+    \end{enumerate}
+\end{shaded}
+
+第二题的回答……
+
+\newpage
+\begin{shaded}
+\question Figure \ref{wheel} shows two cipher wheels. The left one is from Jeffrey Hoffstein, et al. \cite{hoffstein2008introduction}. Write a Python 3 program that uses it to encrypt: \texttt{FOUR SCORE AND SEVEN YEARS AGO}.
+\end{shaded}
+\img<wheel>[0.26]{Cipher wheels.}{cipher.png, diagram.jpg}
+
+The Python program is given in listing \ref{cpr} and the encryption is given in table \ref{enc}.
+
+\lstinputlisting[language=Python, caption={Python 3 implementing figure \ref{wheel} left wheel.}, label=cpr]{code/prog.py}
+
+\tbl<enc>{Caesar cipher} {
+  Plain Text  & FOUR & SCORE & AND & SEVEN & YEARS & AGO \\
+  Cipher Text & KTZW & XHTWJ & FSI & XJAJS & DJFWX & FLT \\
+}
+
+% citations
+\newpage
+\large
+\bibliographystyle{plain}
+\bibliography{citations}
+
+\end{document}
